@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kementerian Luar Negeri Republik Indonesia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-serif: 'Lora', serif;
+        }
+        body { font-family: var(--font-sans); font-size: 15px; }
+        .font-serif-display { font-family: var(--font-serif); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        #chat-widget-container, #chat-toggle, .modal-overlay, .modal-box, #toast-notification { transition: all 0.3s ease-in-out; }
+        
+        #chat-widget-container.is-expanded {
+            max-width: 90%;
+            width: 800px;
+            max-height: 90vh;
+        }
+
+        .bubble-bot {
+            font-family: var(--font-sans);
+            font-size: 15px; 
+            line-height: 1.6;
+        }
+
+        .bubble-bot strong {
+            font-weight: 600;
+            display: inline;
+        }
+        
+        .bubble-bot ul { list-style-type: disc !important; padding-left: 20px !important; margin-top: 8px; margin-bottom: 8px; }
+        .bubble-bot ol { list-style-type: decimal !important; padding-left: 20px !important; margin-top: 8px; margin-bottom: 8px;}
+        .bubble-bot li { margin-bottom: 8px; }
+        .bubble-bot p { margin-bottom: 12px; }
+        .bubble-bot a { font-weight: 500; }
+
+        .chat-action-btn { background-color: transparent; border: none; cursor: pointer; color: #64748b; padding: 6px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; }
+        .chat-action-btn:hover:not(:disabled) { background-color: #e2e8f0; color: #1e293b; }
+        .chat-action-btn.liked, .chat-action-btn.disliked { background-color: #bfdbfe; color: #1d4ed8; }
+        .chat-action-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .chat-actions-container { display: flex; align-items: center; gap: 4px; padding-top: 8px; margin-top: 12px; border-top: 1px solid #e2e8f0; }
+        .news-card:hover img { transform: scale(1.05); }
+        .news-card img { transition: transform 0.3s ease-in-out; }
+        .lang-switcher button { padding: 0.25rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; border: 1px solid transparent; }
+        .lang-switcher button.active { background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+        .lang-switcher button:not(.active) { background-color: #475569; color: #cbd5e1; border-color: #64748b; }
+        .lang-switcher button:not(.active):hover { background-color: #64748b; }
+        #autocomplete-list { position: absolute; bottom: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; max-height: 150px; overflow-y: auto; z-index: 10; margin-bottom: 8px; box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1); }
+        .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; }
+        .autocomplete-item:hover { background-color: #f1f5f9; }
+        .follow-up-suggestions { padding-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .suggestion-btn { background-color: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; border: 1px solid #bae6fd; cursor: pointer; transition: background-color 0.2s; }
+        .suggestion-btn:hover { background-color: #bae6fd; }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pop-out {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0; }
+        }
+        .animate-pop-in { animation: pop-in 0.3s ease-out forwards; }
+        .animate-pop-out { animation: pop-out 0.3s ease-in forwards; }
+    </style>
+</head>
+<body class="bg-gray-100 text-slate-800">
+
+    <div class="min-h-screen flex flex-col">
+        <header class="bg-white shadow-md sticky top-0 z-50">
+            <div class="bg-slate-800 text-white">
+                <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-10">
+                    <div class="flex items-center gap-4">
+                        <a href="https://x.com/kemlu_ri" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                        </a>
+                        <a href="https://www.instagram.com/kemlu_ri" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.585-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.585-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.585.069-4.85c.149-3.225 1.664 4.771 4.919-4.919 1.266-.058 1.644-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.947s-.014-3.667-.072-4.947c-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"></path></svg>
+                        </a>
+                        <a href="https://www.youtube.com/user/PortalKemlu" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"></path></svg>
+                        </a>
+                    </div>
+                    <div class="flex items-center text-sm gap-4">
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors" data-translate-key="career_link">Karir</a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors" data-translate-key="contact_link">Kontak</a>
+                        <div class="lang-switcher flex items-center bg-slate-700 rounded-md p-0.5">
+                            <button id="lang-id-btn">ID</button>
+                            <button id="lang-en-btn">EN</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <a href="#" class="flex items-center gap-4">
+                        <img src="{{ url_for('static', filename='kemlu-logo.png') }}" alt="Logo Kemenlu" class="h-16">
+                        <div>
+                            <p class="font-serif-display text-sm font-bold text-slate-800 uppercase tracking-wide" data-translate-key="header_title">Kementerian Luar Negeri</p>
+                            <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider" data-translate-key="header_subtitle">Republik Indonesia</p>
+                        </div>
+                    </a>
+                    <div class="hidden md:flex items-center gap-6 font-semibold text-sm text-slate-600">
+                        <a href="#" class="hover:text-sky-600 transition-colors" data-translate-key="nav_policy">KEBIJAKAN</a>
+                        <a href="#" class="hover:text-sky-600 transition-colors" data-translate-key="nav_performance">KINERJA</a>
+                        <a href="#" class="hover:text-sky-600 transition-colors" data-translate-key="nav_publications">PUBLIKASI</a>
+                        <a href="#" class="hover:text-sky-600 transition-colors">PPID</a>
+                        <a href="#" class="hover:text-sky-600 transition-colors" data-translate-key="nav_news">BERITA</a>
+                        <div class="h-6 w-px bg-slate-300"></div>
+                        <a href="#" class="bg-sky-500 px-4 py-2 rounded-md text-white hover:bg-sky-600 transition-colors" data-translate-key="nav_services">LAYANAN</a>
+                        <a href="#" class="bg-slate-700 px-4 py-2 rounded-md text-white hover:bg-slate-800 transition-colors" data-translate-key="nav_missions">PERWAKILAN</a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main class="flex-grow max-w-screen-xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
+             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div class="lg:col-span-3 space-y-8">
+                    <a href="#" class="group block bg-white rounded-xl shadow-lg overflow-hidden news-card">
+                        <div class="md:flex">
+                            <div class="md:w-1/2">
+                                <img class="h-full w-full object-cover" src="{{ url_for('static', filename='pertemuandiplomatik.jpg') }}" alt="Pertemuan diplomatik di Gedung Pancasila">
+                            </div>
+                            <div class="p-8 md:w-1/2 flex flex-col justify-center">
+                                <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full mb-2 self-start" data-translate-key="main_news_tag">BERITA UTAMA</span>
+                                <h2 class="font-serif-display text-3xl font-bold leading-tight text-slate-900 group-hover:text-sky-700 transition-colors" data-translate-key="main_news_title">Indonesia Perkuat Peran di Panggung Global, Dorong Diplomasi Perdamaian</h2>
+                                <p class="mt-4 text-slate-600" data-translate-key="main_news_desc">Di tengah tantangan global, diplomasi Indonesia terus proaktif dalam memajukan kerja sama multilateral dan menjaga stabilitas kawasan.</p>
+                            </div>
+                        </div>
+                    </a>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4 border-b-2 border-slate-300 pb-2" data-translate-key="latest_news_title">Berita Terkini</h3>
+                        <div class="grid md:grid-cols-2 gap-6 mt-4">
+                            <a href="#" class="group block bg-white rounded-xl shadow-lg overflow-hidden news-card">
+                                <div class="overflow-hidden"><img class="h-48 w-full object-cover" src="{{ url_for('static', filename='buretnodiKTT.jpg') }}" alt="Menteri Luar Negeri Retno Marsudi di KTT"></div>
+                                <div class="p-6"><span class="text-sky-700 text-xs font-bold" data-translate-key="news_tag">BERITA</span><h4 class="font-bold text-lg mt-1 group-hover:text-sky-700 transition-colors" data-translate-key="news1_title">Menlu Retno Marsudi di KTT Darurat: “Tak Ada Perdamaian Tanpa Keadilan”</h4></div>
+                            </a>
+                            <a href="#" class="group block bg-white rounded-xl shadow-lg overflow-hidden news-card">
+                                <div class="overflow-hidden"><img class="h-48 w-full object-cover" src="{{ url_for('static', filename='gedung.jpg') }}" alt="Gedung Kementerian Luar Negeri"></div>
+                                <div class="p-6"><span class="text-sky-700 text-xs font-bold" data-translate-key="news_tag">BERITA</span><h4 class="font-bold text-lg mt-1 group-hover:text-sky-700 transition-colors" data-translate-key="news2_title">Kemenlu Beri Penghormatan Terakhir untuk Staf yang Gugur</h4></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 text-white rounded-xl shadow-lg p-6 flex flex-col lg:h-[calc(100vh-10rem)]">
+                    <h3 class="text-xl font-bold border-b-2 border-slate-600 pb-3 mb-4" data-translate-key="highlight_news_title">SOROTAN BERITA</h3>
+                    <div class="flex-grow overflow-y-auto space-y-4 pr-3 custom-scrollbar">
+                        <a href="#" class="block hover:bg-slate-700 p-2 rounded-lg transition-colors"><div class="flex items-start gap-4"><img src="{{ url_for('static', filename='sidangumumpbb.jpeg') }}" alt="Sidang Umum PBB" class="w-20 h-14 object-cover rounded-md flex-shrink-0"><p class="font-semibold text-sm leading-tight text-slate-200" data-translate-key="highlight1_title">Mengawali High Level Week SMU ke-80 PBB, Menlu Dorong Penguatan Multilateralisme.</p></div></a>
+                        <a href="#" class="block hover:bg-slate-700 p-2 rounded-lg transition-colors"><div class="flex items-start gap-4"><img src="{{ url_for('static', filename='pernyataanpers.jpg') }}" alt="Pernyataan Pers Tahunan Menlu" class="w-20 h-14 object-cover rounded-md flex-shrink-0"><p class="font-semibold text-sm leading-tight text-slate-200" data-translate-key="highlight2_title">Pernyataan Pers Tahunan Menteri Luar Negeri Republik Indonesia Tahun 2025.</p></div></a>
+                        <a href="#" class="block hover:bg-slate-700 p-2 rounded-lg transition-colors"><div class="flex items-start gap-4"><img src="{{ url_for('static', filename='dewanhampbb.jpeg') }}" alt="Dewan HAM PBB" class="w-20 h-14 object-cover rounded-md flex-shrink-0"><p class="font-semibold text-sm leading-tight text-slate-200" data-translate-key="highlight3_title">Indonesia Kembali Terpilih Menjadi Anggota Dewan HAM PBB.</p></div></a>
+                        <a href="#" class="block hover:bg-slate-700 p-2 rounded-lg transition-colors"><div class="flex items-start gap-4"><img src="{{ url_for('static', filename='petaduniadiplomasi.jpg') }}" alt="Peta Dunia Diplomasi" class="w-20 h-14 object-cover rounded-md flex-shrink-0"><p class="font-semibold text-sm leading-tight text-slate-200" data-translate-key="highlight4_title">Pernyataan Kemlu Terkait Perkembangan Situasi di Kawasan.</p></div></a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+	
+    <button id="chat-toggle" class="fixed bottom-5 left-5 w-16 h-16 bg-sky-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-sky-700 transition-all transform hover:scale-110 z-[1000]">
+        <svg id="chat-open-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <svg id="chat-close-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    </button>
+
+    <div id="chat-widget-container" class="hidden fixed bottom-24 left-5 w-full max-w-lg h-[80vh] max-h-[700px] bg-white rounded-2xl shadow-xl flex flex-col origin-bottom-left z-[1000] overflow-hidden">
+        <div class="flex items-center justify-between p-4 bg-slate-800 text-white rounded-t-2xl">
+            <div class="flex items-center gap-3">
+                <img src="{{ url_for('static', filename='icon-ai.png') }}" alt="AI Icon" class="w-10 h-10 rounded-full">
+                <div>
+                    <h3 class="font-bold text-lg" data-translate-key="widget_title">Asisten Virtual</h3>
+                    <p class="text-sm text-slate-300" data-translate-key="widget_subtitle">Layanan Informasi Kemenlu</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1">
+                <button type="button" id="resize-btn" title="Perbesar" data-translate-key="resize_expand_title" class="text-slate-400 hover:bg-slate-700 rounded-full p-2">
+                    <svg id="resize-icon-expand" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h4.5m-4.5 0v4.5m11.25 -4.5h-4.5m4.5 0v4.5m-11.25 11.25h4.5m-4.5 0v-4.5m11.25 4.5h-4.5m4.5 0v-4.5" />
+                    </svg>
+                    <svg id="resize-icon-collapse" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75v4.5m0-4.5h-4.5m4.5 0l-5.25 5.25M9 20.25v-4.5m0 4.5h-4.5m4.5 0l-5.25-5.25M15 3.75v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M15 20.25v-4.5m0 4.5h4.5m-4.5 0l5.25-5.25" />
+                    </svg>
+                </button>
+                <button type="button" id="help-btn" title="Panduan Penggunaan" class="text-slate-400 hover:bg-slate-700 rounded-full p-2" data-translate-key="guide_title"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+                <button id="chat-close" class="text-slate-400 hover:bg-slate-700 rounded-full p-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+        </div>
+        <div id="chat-box" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50 custom-scrollbar"></div>
+        <div class="p-3 bg-white border-t border-slate-200 rounded-b-2xl">
+            <div class="flex items-center gap-2 mb-2">
+                <button type="button" id="reset-btn" class="flex-1 text-xs text-slate-500 hover:bg-slate-100 py-1 px-2 rounded-md transition-colors" data-translate-key="reset_title">Mulai Ulang</button>
+                <button type="button" id="download-btn" class="flex-1 text-xs text-slate-500 hover:bg-slate-100 py-1 px-2 rounded-md transition-colors" data-translate-key="download_title">Unduh</button>
+                <button type="button" id="feedback-btn" class="flex-1 text-xs text-slate-500 hover:bg-slate-100 py-1 px-2 rounded-md transition-colors" data-translate-key="feedback_title">Masukan</button>
+            </div>
+            <div class="relative">
+                <form id="chat-form" class="flex items-center gap-2">
+                    <input type="text" id="user-input" class="w-full bg-slate-100 border-slate-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Tulis pertanyaan..." autocomplete="off" data-translate-key="input_placeholder">
+                    <button type="submit" id="send-btn" title="Kirim" data-translate-key="send_button_title" class="bg-sky-600 text-white p-2.5 rounded-full hover:bg-sky-700 transition shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                    </button>
+                </form>
+                <div id="autocomplete-list" class="hidden"></div>
+            </div>
+            <div id="follow-up-container" class="mt-2"></div>
+            <div class="flex justify-center items-center mt-2">
+                <img src="{{ url_for('static', filename='Google-Gemini-Logo.png') }}" alt="Powered by Gemini" class="h-8">
+            </div>
+        </div>
+        
+        <div id="session-timeout-modal" class="absolute inset-0 z-[2000] flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay opacity-0 pointer-events-none"><div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm modal-box scale-95 transform"><h3 class="text-lg font-bold text-slate-800 mb-4" data-translate-key="session_timeout_title">Sesi Berakhir</h3><p class="text-sm text-slate-600 mb-4" data-translate-key="session_timeout_text">Sesi Anda telah berakhir karena tidak ada aktivitas. Silakan mulai ulang percakapan.</p><div class="flex justify-end items-center gap-3 mt-4"><button type="button" id="restart-chat-btn" class="text-sm font-semibold text-white bg-sky-600 px-4 py-2 rounded-lg hover:bg-sky-700 transition shadow" data-translate-key="restart_button">Mulai Ulang</button></div></div></div>
+        <div id="help-modal" class="absolute inset-0 z-[2000] flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay opacity-0 pointer-events-none"><div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg modal-box scale-95 transform"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-slate-800" data-translate-key="guide_modal_title">Panduan Penggunaan</h3><button type="button" id="close-help-btn" class="text-slate-500 hover:text-slate-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button></div><div class="space-y-4 text-sm text-slate-600"><p data-translate-key="guide_modal_intro">Berikut adalah penjelasan singkat mengenai tombol-tombol yang tersedia di Asisten Virtual ini:</p><div class="pt-4 mt-4 border-t border-slate-200"><h4 class="font-semibold text-slate-800 mb-3" data-translate-key="guide_chat_actions_title">Tombol di dalam Balon Chat</h4><div class="space-y-5"><div class="flex items-start gap-4"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 flex-shrink-0 text-slate-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg><div><strong data-translate-key="guide_copy_title">Salin:</strong> <span data-translate-key="guide_copy_desc">Menyalin teks jawaban dari Asisten Virtual ke clipboard Anda.</span></div></div><div class="flex items-start gap-4"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 flex-shrink-0 text-slate-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg><div><strong data-translate-key="guide_speak_title">Ucapkan:</strong> <span data-translate-key="guide_speak_desc">Menggunakan fitur Text-to-Speech untuk membacakan jawaban Asisten Virtual.</span></div></div><div class="flex items-start gap-4"><img src="{{ url_for('static', filename='like-icon.png') }}" alt="Suka" class="w-6 h-6 flex-shrink-0"><div><strong data-translate-key="guide_like_title">Suka:</strong> <span data-translate-key="guide_like_desc">Memberikan masukan positif (jempol ke atas) untuk jawaban yang diberikan.</span></div></div><div class="flex items-start gap-4"><img src="{{ url_for('static', filename='dislike-icon.png') }}" alt="Tidak Suka" class="w-6 h-6 flex-shrink-0"><div><strong data-translate-key="guide_dislike_title">Tidak Suka:</strong> <span data-translate-key="guide_dislike_desc">Memberikan masukan negatif (jempol ke bawah) untuk jawaban yang diberikan.</span></div></div></div></div></div></div></div>
+        <div id="feedback-modal" class="absolute inset-0 z-[2000] flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay opacity-0 pointer-events-none"><div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md modal-box scale-95 transform"><h3 class="text-lg font-bold text-slate-800 mb-4" data-translate-key="feedback_modal_title">Berikan Masukan</h3><p class="text-sm text-slate-600 mb-4" data-translate-key="feedback_modal_intro">Kami menghargai masukan Anda untuk membantu kami meningkatkan layanan chatbot ini.</p><form id="feedback-form"><textarea id="feedback-input" class="w-full h-32 bg-slate-100 border border-slate-300 rounded-lg p-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 transition" placeholder="Tulis masukan Anda di sini..." required data-translate-key="feedback_placeholder"></textarea><div class="flex justify-end items-center gap-3 mt-4"><button type="button" id="cancel-feedback-btn" class="text-sm font-semibold text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition" data-translate-key="cancel_button">Batal</button><button type="submit" id="submit-feedback-btn" class="text-sm font-semibold text-white bg-sky-600 px-4 py-2 rounded-lg hover:bg-sky-700 transition shadow" data-translate-key="submit_feedback_button">Kirim Masukan</button></div></form><div id="feedback-success-message" class="hidden mt-4 p-3 bg-green-100 text-green-800 rounded-lg text-center" data-translate-key="feedback_success">Terima kasih! Masukan Anda telah berhasil dikirim.</div></div></div>
+        <div id="reset-confirm-modal" class="absolute inset-0 z-[2000] flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay opacity-0 pointer-events-none"><div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm modal-box scale-95 transform"><h3 class="text-lg font-bold text-slate-800 mb-4" data-translate-key="reset_modal_title">Mulai Ulang Percakapan</h3><p class="text-sm text-slate-600 mb-4" data-translate-key="reset_modal_text">Apakah Anda yakin ingin memulai ulang percakapan ini? Riwayat akan dihapus secara permanen.</p><div class="flex justify-end items-center gap-3 mt-4"><button type="button" id="cancel-reset-btn" class="text-sm font-semibold text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition" data-translate-key="cancel_button">Batal</button><button type="button" id="confirm-reset-btn" class="text-sm font-semibold text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition shadow" data-translate-key="reset_button">Mulai Ulang</button></div></div></div>
+    </div>
+    
+    <div id="toast-notification" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transform translate-y-4 z-[3000]"><p id="toast-message">Terima kasih atas masukan Anda!</p></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatBox = document.getElementById('chat-box');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const resetBtn = document.getElementById('reset-btn');
+        const feedbackBtn = document.getElementById('feedback-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const helpBtn = document.getElementById('help-btn');
+        const chatToggleBtn = document.getElementById('chat-toggle');
+        const chatWidget = document.getElementById('chat-widget-container');
+        const chatCloseBtn = document.getElementById('chat-close');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        const followUpContainer = document.getElementById('follow-up-container');
+        
+        const resizeBtn = document.getElementById('resize-btn');
+        const resizeIconExpand = document.getElementById('resize-icon-expand');
+        const resizeIconCollapse = document.getElementById('resize-icon-collapse');
+
+        const feedbackModal = document.getElementById('feedback-modal');
+        const feedbackForm = document.getElementById('feedback-form');
+        const feedbackInput = document.getElementById('feedback-input');
+        const cancelFeedbackBtn = document.getElementById('cancel-feedback-btn');
+        const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
+        const feedbackSuccessMessage = document.getElementById('feedback-success-message');
+        const resetConfirmModal = document.getElementById('reset-confirm-modal');
+        const cancelResetBtn = document.getElementById('cancel-reset-btn');
+        const confirmResetBtn = document.getElementById('confirm-reset-btn');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const sessionTimeoutModal = document.getElementById('session-timeout-modal');
+        const restartChatBtn = document.getElementById('restart-chat-btn');
+        const toastNotification = document.getElementById('toast-notification');
+        const toastMessage = document.getElementById('toast-message');
+        const langIdBtn = document.getElementById('lang-id-btn');
+        const langEnBtn = document.getElementById('lang-en-btn');
+        const chatOpenIcon = document.getElementById('chat-open-icon');
+        const chatCloseIcon = document.getElementById('chat-close-icon');
+
+        let sessionTimeoutTimer;
+        let toastTimeout;
+        let messageCounter = 0;
+        let autocompleteTerms = [];
+
+        const translations = {
+            id: {
+                header_title: "Kementerian Luar Negeri", header_subtitle: "Republik Indonesia", career_link: "Karir", contact_link: "Kontak",
+                nav_policy: "KEBIJAKAN", nav_performance: "KINERJA", nav_publications: "PUBLIKASI", nav_news: "BERITA", nav_services: "LAYANAN", nav_missions: "PERWAKILAN",
+                main_news_tag: "BERITA UTAMA", main_news_title: "Indonesia Perkuat Peran di Panggung Global, Dorong Diplomasi Perdamaian", main_news_desc: "Di tengah tantangan global, diplomasi Indonesia terus proaktif dalam memajukan kerja sama multilateral dan menjaga stabilitas kawasan.",
+                latest_news_title: "Berita Terkini", news_tag: "BERITA", news1_title: "Menlu Retno Marsudi di KTT Darurat: “Tak Ada Perdamaian Tanpa Keadilan”", news2_title: "Kemenlu Beri Penghormatan Terakhir untuk Staf yang Gugur",
+                highlight_news_title: "SOROTAN BERITA", highlight1_title: "Mengawali High Level Week SMU ke-80 PBB, Menlu Dorong Penguatan Multilateralisme.", highlight2_title: "Pernyataan Pers Tahunan Menteri Luar Negeri Republik Indonesia Tahun 2025.", highlight3_title: "Indonesia Kembali Terpilih Menjadi Anggota Dewan HAM PBB.", highlight4_title: "Pernyataan Kemlu Terkait Perkembangan Situasi di Kawasan.",
+                widget_title: "Asisten Virtual", widget_subtitle: "Layanan Informasi Kemenlu", input_placeholder: "Tulis pertanyaan...", reset_title: "Mulai Ulang", download_title: "Unduh", feedback_title: "Masukan", guide_title: "Panduan", send_button_title: "Kirim",
+                resize_expand_title: "Perbesar", resize_collapse_title: "Perkecil",
+                welcome_message: "Hi! Saya Asisten Virtual dari Kementerian Luar Negeri RI. Saya siap menjawab pertanyaan Anda seputar Layanan Konsuler.",
+                faq_title: "Pertanyaan yang Sering Diajukan",
+                faq_1: "Bagaimana cara mengajukan permohonan visa turis secara online?", faq_2: "Apakah saya memerlukan visa untuk masuk ke Indonesia?", faq_3: "Bagaimana cara memperpanjang paspor saya?", faq_4: "Apa yang harus saya lakukan jika kehilangan paspor di luar negeri?",
+                guide_modal_title: "Panduan Penggunaan", guide_modal_intro: "Berikut adalah penjelasan singkat mengenai tombol-tombol yang tersedia di Asisten Virtual ini:", guide_chat_actions_title: "Tombol di dalam Balon Chat", guide_copy_title: "Salin:", guide_copy_desc: "Menyalin teks jawaban dari Asisten Virtual ke clipboard Anda.", guide_speak_title: "Ucapkan:", guide_speak_desc: "Menggunakan fitur Text-to-Speech untuk membacakan jawaban Asisten Virtual.", guide_like_title: "Suka:", guide_like_desc: "Memberikan masukan positif (jempol ke atas) untuk jawaban yang diberikan.", guide_dislike_title: "Tidak Suka:", guide_dislike_desc: "Memberikan masukan negatif (jempol ke bawah) untuk jawaban yang diberikan.",
+                feedback_modal_title: "Berikan Masukan", feedback_modal_intro: "Kami menghargai masukan Anda untuk membantu kami meningkatkan layanan chatbot ini.", feedback_placeholder: "Tulis masukan Anda di sini...", cancel_button: "Batal", submit_feedback_button: "Kirim Masukan", feedback_success: "Terima kasih! Masukan Anda telah berhasil dikirim.",
+                reset_modal_title: "Mulai Ulang Percakapan", reset_modal_text: "Apakah Anda yakin ingin memulai ulang percakapan ini? Riwayat akan dihapus secara permanen.", reset_button: "Mulai Ulang",
+                session_timeout_title: "Sesi Berakhir", session_timeout_text: "Sesi Anda telah berakhir karena tidak ada aktivitas. Silakan mulai ulang percakapan.", restart_button: "Mulai Ulang",
+                toast_feedback_thanks: "Terima kasih atas masukan Anda!", toast_feedback_already_submitted: "Anda sudah memberikan masukan.", toast_feedback_fail: "Gagal mengirim masukan. Coba lagi.", speech_unsupported: "Maaf, browser Anda tidak mendukung fitur text-to-speech.", fetch_error: "❌ Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi.",
+                explain_further: "Jelaskan Lebih Lanjut"
+            },
+            en: {
+                header_title: "Ministry of Foreign Affairs", header_subtitle: "Republic of Indonesia", career_link: "Career", contact_link: "Contact",
+                nav_policy: "POLICY", nav_performance: "PERFORMANCE", nav_publications: "PUBLICATIONS", nav_news: "NEWS", nav_services: "SERVICES", nav_missions: "MISSIONS",
+                main_news_tag: "MAIN STORY", main_news_title: "Indonesia Strengthens Role on Global Stage, Pushing for Peace Diplomacy", main_news_desc: "Amid global challenges, Indonesia's diplomacy remains proactive in advancing multilateral cooperation and maintaining regional stability.",
+                latest_news_title: "Latest News", news_tag: "NEWS", news1_title: "Foreign Minister Retno Marsudi at Emergency Summit: 'No Peace Without Justice'", news2_title: "MFA Pays Last Respects to Fallen Staff Member",
+                highlight_news_title: "NEWS HIGHLIGHTS", highlight1_title: "Kicking off the 80th UNGA High-Level Week, Foreign Minister Pushes for Stronger Multilateralism.", highlight2_title: "Annual Press Statement of the Minister for Foreign Affairs of the Republic of Indonesia for 2025.", highlight3_title: "Indonesia Re-elected as a Member of the UN Human Rights Council.", highlight4_title: "MFA Statement on the Development of the Situation in the Region.",
+                widget_title: "Virtual Assistant", widget_subtitle: "MFA Information Service", input_placeholder: "Write a question...", reset_title: "Reset", download_title: "Download", feedback_title: "Feedback", guide_title: "Guide", send_button_title: "Send",
+                resize_expand_title: "Expand", resize_collapse_title: "Collapse",
+                welcome_message: "Hi! I am the Virtual Assistant from the Ministry of Foreign Affairs of RI. I am ready to answer your questions about Consular Services.",
+                faq_title: "Frequently Asked Questions",
+                faq_1: "How to apply for a tourist visa online?", faq_2: "Do I need a visa to enter Indonesia?", faq_3: "How to renew my passport?", faq_4: "What should I do if I lose my passport abroad?",
+                guide_modal_title: "User Guide", guide_modal_intro: "Here is a brief explanation of the available features:", guide_chat_actions_title: "In-Chat Buttons", guide_copy_title: "Copy:", guide_copy_desc: "Copies the Assistant's response to your clipboard.", guide_speak_title: "Speak:", guide_speak_desc: "Uses Text-to-Speech to read the Assistant's answer aloud.", guide_like_title: "Like:", guide_like_desc: "Gives positive feedback (thumbs up) for the response.", guide_dislike_title: "Dislike:", guide_dislike_desc: "Gives negative feedback (thumbs down) for the response.",
+                feedback_modal_title: "Give Feedback", feedback_modal_intro: "We value your feedback to help us improve this chatbot service.", feedback_placeholder: "Write your feedback here...", cancel_button: "Cancel", submit_feedback_button: "Send Feedback", feedback_success: "Thank you! Your feedback has been submitted.",
+                reset_modal_title: "Reset Conversation", reset_modal_text: "Are you sure you want to restart this conversation? The history will be permanently deleted.", reset_button: "Reset",
+                session_timeout_title: "Session Expired", session_timeout_text: "Your session has expired due to inactivity. Please restart the conversation.", restart_button: "Restart",
+                toast_feedback_thanks: "Thank you for your feedback!", toast_feedback_already_submitted: "You've already given feedback.", toast_feedback_fail: "Failed to send feedback. Please try again.", speech_unsupported: "Sorry, your browser doesn't support text-to-speech.", fetch_error: "❌ Failed to connect to the server. Check your connection and try again.",
+                explain_further: "Ask for Details"
+            }
+        };
+        
+        const scrollToBottom = () => chatBox.scrollTop = chatBox.scrollHeight;
+        const getCurrentTime = () => new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        const openModal = (modal) => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-box').classList.remove('scale-95');
+        };
+        const closeModal = (modal) => {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-box').classList.add('scale-95');
+        };
+        
+        const showToast = (message) => {
+            clearTimeout(toastTimeout);
+            toastMessage.textContent = message;
+            toastNotification.classList.remove('opacity-0', 'translate-y-4');
+            toastNotification.classList.add('opacity-100', 'translate-y-0');
+            toastTimeout = setTimeout(() => {
+                toastNotification.classList.remove('opacity-100', 'translate-y-0');
+                toastNotification.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        };
+
+        const appendMessage = (sender, htmlContent, showActions = true, followUps = null) => {
+            const currentLang = localStorage.getItem('chatLang') || 'id';
+            const buttonText = translations[currentLang].explain_further;
+            const timestamp = getCurrentTime();
+            const messageId = `msg-${++messageCounter}`;
+            let messageRow;
+
+            if (sender === 'user') {
+                const escapedContent = htmlContent.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                messageRow = `<div class="flex justify-end" data-sender="user" data-text="${escapedContent}"><div class="bg-sky-600 text-white p-3 rounded-2xl rounded-tr-none max-w-md break-words"><div>${escapedContent}</div><div class="text-right text-xs opacity-75 mt-1">${timestamp}</div></div></div>`;
+            } else {
+                const actionButtons = showActions ? `
+                    <div class="chat-actions-container flex-wrap" data-action-for="${messageId}">
+                        <div class="flex items-center gap-1">
+                            <button class="chat-action-btn" title="Salin" data-action="copy"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg></button>
+                            <button class="chat-action-btn" title="Ucapkan" data-action="speak"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg></button>
+                        </div>
+                        <div class="flex-grow"></div>
+                        <div class="flex items-center gap-1">
+                            <button class="chat-action-btn" title="Suka" data-action="like"><img src="{{ url_for('static', filename='like-icon.png') }}" alt="Suka" class="w-5 h-5"></button>
+                            <button class="chat-action-btn" title="Tidak Suka" data-action="dislike"><img src="{{ url_for('static', filename='dislike-icon.png') }}" alt="Tidak Suka" class="w-5 h-5"></button>
+                        </div>
+                        <div class="w-full mt-2 pt-2 border-t border-slate-300">
+                             <button class="suggestion-btn w-full text-center" onclick="window.requestElaboration()" data-translate-key="explain_further">${buttonText}</button>
+                        </div>
+                    </div>` : '';
+                
+                messageRow = `<div class="flex justify-start items-start gap-3" data-sender="bot"><img src="{{ url_for('static', filename='icon-ai.png') }}" class="h-10 w-10 rounded-full flex-shrink-0"><div class="bg-slate-200 p-3 rounded-2xl rounded-tl-none max-w-lg break-words w-full"><div class="bubble-bot" id="${messageId}" data-text="${htmlContent.replace(/"/g, '&quot;')}">${htmlContent}<div class="text-left text-xs text-slate-500 mt-2">${timestamp}</div></div>${actionButtons}</div></div>`;
+            }
+            chatBox.insertAdjacentHTML('beforeend', messageRow);
+
+            if (followUps) {
+                showFollowUpSuggestions(followUps);
+            }
+
+            scrollToBottom();
+        };
+        
+        const showTypingIndicator = () => {
+            const typingHTML = `<div id="typing-indicator" class="flex items-center space-x-1.5 p-3"><div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay:-0.3s"></div><div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay:-0.15s"></div><div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div></div>`;
+            appendMessage('bot', typingHTML, false);
+        };
+        const removeTypingIndicator = () => {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.closest('.flex.justify-start').remove();
+        };
+
+        const clearFollowUpSuggestions = () => {
+            followUpContainer.innerHTML = '';
+        };
+
+        const showFollowUpSuggestions = (followUps) => {
+            clearFollowUpSuggestions();
+            if (followUps && followUps.suggestions && followUps.suggestions.length > 0) {
+                let suggestionsHtml = `<p class="text-sm font-semibold text-slate-600 mb-2">${followUps.message}</p>`;
+                suggestionsHtml += followUps.suggestions.map(suggestion => 
+                    `<button class="suggestion-btn" onclick="window.sendMessage('${suggestion.replace(/'/g, "\\'")}')">${suggestion}</button>`
+                ).join('');
+                followUpContainer.innerHTML = `<div class="follow-up-suggestions">${suggestionsHtml}</div>`;
+            }
+        };
+
+        window.requestElaboration = () => {
+            const currentLang = localStorage.getItem('chatLang') || 'id';
+            const detailRequestMessage = currentLang === 'id' ? 'Jelaskan lebih detail' : 'More details';
+            sendMessage(detailRequestMessage);
+        };
+
+        window.sendMessage = async (message) => {
+            if (!message || !message.trim()) return;
+            appendMessage('user', message);
+            userInput.value = '';
+            clearFollowUpSuggestions();
+            autocompleteList.innerHTML = '';
+            autocompleteList.classList.add('hidden');
+            showTypingIndicator();
+            resetSessionTimer();
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message }),
+                });
+                removeTypingIndicator();
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                let botHtmlContent = '';
+                if(data.response.type === 'list' && Array.isArray(data.response.items)) {
+                    if(data.response.title) botHtmlContent += `<strong>${data.response.title}</strong>`;
+                    botHtmlContent += '<ul>';
+                    data.response.items.forEach(item => {
+                        botHtmlContent += `<li>${item}</li>`;
+                    });
+                    botHtmlContent += '</ul>';
+                } else {
+                    botHtmlContent = data.response.content;
+                }
+                
+                if (data.response.footer && data.response.footer.text && data.response.footer.link) {
+                    botHtmlContent += `<p class="text-xs text-slate-500 mt-2">More Information: <a href="${data.response.footer.link}" target="_blank" class="underline">${data.response.footer.text}</a></p>`;
+                }
+
+                if (!botHtmlContent) {
+                    throw new Error("Struktur respon tidak valid dari server.");
+                }
+                
+                appendMessage('bot', botHtmlContent, true, data.follow_ups);
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                removeTypingIndicator();
+                const currentLang = localStorage.getItem('chatLang') || 'id';
+                appendMessage('bot', `<p class="text-red-600">${translations[currentLang].fetch_error}</p>`);
+            }
+        };
+        
+        const showWelcomeMessage = (lang = 'id') => {
+            appendMessage('bot', translations[lang].welcome_message, false);
+            setTimeout(() => {
+                let faqHtml = `<div class="bg-slate-100 border border-slate-200 p-3 rounded-lg"><h4 class="font-bold text-slate-800 mb-2">${translations[lang].faq_title}</h4><div class="flex flex-col items-start space-y-2">`;
+                ['faq_1', 'faq_2', 'faq_3', 'faq_4'].forEach(key => {
+                    const faqText = translations[lang][key];
+                    faqHtml += `<button class="text-left text-sky-600 hover:underline text-sm" onclick="window.sendMessage('${faqText.replace(/'/g, "\\'")}')">${faqText}</button>`;
+                });
+                faqHtml += `</div></div>`;
+                appendMessage('bot', faqHtml, false);
+            }, 800);
+        };
+
+        chatForm.addEventListener('submit', (e) => { e.preventDefault(); sendMessage(userInput.value); });
+        
+        chatToggleBtn.addEventListener('click', () => {
+            const isHidden = chatWidget.classList.contains('hidden');
+            if (isHidden) {
+                chatWidget.classList.remove('hidden');
+                chatWidget.classList.remove('animate-pop-out');
+                chatWidget.classList.add('animate-pop-in');
+                chatOpenIcon.classList.add('hidden');
+                chatCloseIcon.classList.remove('hidden');
+            } else {
+                chatWidget.classList.remove('animate-pop-in');
+                chatWidget.classList.add('animate-pop-out');
+                setTimeout(() => {
+                    chatWidget.classList.add('hidden');
+                }, 300);
+                chatOpenIcon.classList.remove('hidden');
+                chatCloseIcon.classList.add('hidden');
+            }
+            if (chatBox.children.length === 0) {
+                const currentLang = localStorage.getItem('chatLang') || 'id';
+                showWelcomeMessage(currentLang);
+            }
+        });
+
+        chatCloseBtn.addEventListener('click', () => {
+             chatWidget.classList.remove('animate-pop-in');
+            chatWidget.classList.add('animate-pop-out');
+            setTimeout(() => {
+                chatWidget.classList.add('hidden');
+            }, 300);
+            chatOpenIcon.classList.remove('hidden');
+            chatCloseIcon.classList.add('hidden');
+        });
+
+        resizeBtn.addEventListener('click', () => {
+            chatWidget.classList.toggle('is-expanded');
+            resizeIconExpand.classList.toggle('hidden');
+            resizeIconCollapse.classList.toggle('hidden');
+            const isExpanded = chatWidget.classList.contains('is-expanded');
+            const currentLang = localStorage.getItem('chatLang') || 'id';
+            resizeBtn.title = isExpanded ? translations[currentLang].resize_collapse_title : translations[currentLang].resize_expand_title;
+            resizeBtn.dataset.translateKey = isExpanded ? 'resize_collapse_title' : 'resize_expand_title';
+        });
+
+        const resetChat = async () => {
+            try {
+                await fetch('/reset', { method: 'POST' });
+                chatBox.innerHTML = '';
+                clearFollowUpSuggestions();
+                const currentLang = localStorage.getItem('chatLang') || 'id';
+                showWelcomeMessage(currentLang);
+            } catch (error) { console.error('Gagal reset chat:', error); }
+            finally { closeModal(resetConfirmModal); }
+        };
+        resetBtn.addEventListener('click', () => openModal(resetConfirmModal));
+        cancelResetBtn.addEventListener('click', () => closeModal(resetConfirmModal));
+        confirmResetBtn.addEventListener('click', resetChat);
+
+        feedbackBtn.addEventListener('click', () => { feedbackInput.value = ''; openModal(feedbackModal); });
+        cancelFeedbackBtn.addEventListener('click', () => closeModal(feedbackModal));
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentLang = localStorage.getItem('chatLang') || 'id';
+            submitFeedbackBtn.disabled = true;
+            submitFeedbackBtn.textContent = currentLang === 'id' ? 'Mengirim...' : 'Sending...';
+            try {
+                await fetch('/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedback: feedbackInput.value }), });
+                feedbackForm.classList.add('hidden'); feedbackSuccessMessage.classList.remove('hidden');
+                setTimeout(() => { closeModal(feedbackModal); feedbackForm.classList.remove('hidden'); feedbackSuccessMessage.classList.add('hidden'); }, 2000);
+            } catch (error) { console.error('Feedback error:', error); }
+            finally { submitFeedbackBtn.disabled = false; submitFeedbackBtn.textContent = translations[currentLang].submit_feedback_button; }
+        });
+        
+        downloadBtn.addEventListener('click', () => {
+            const messages = chatBox.querySelectorAll('[data-sender]');
+            let chatContent = "Riwayat Percakapan - Asisten Virtual Kemlu RI\n===================================================\n\n";
+            messages.forEach(msg => {
+                const sender = msg.dataset.sender === 'user' ? 'Anda' : 'Asisten Virtual';
+                let text = 'Pesan tidak valid';
+                const textElement = msg.querySelector('[data-text]');
+                if (textElement) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = textElement.dataset.text;
+                    text = tempDiv.innerText || tempDiv.textContent;
+                }
+                chatContent += `${sender}:\n${text.trim()}\n\n`;
+            });
+            chatContent += `===================================================\nDiunduh pada: ${new Date().toLocaleString('id-ID')}\n`;
+            const blob = new Blob([chatContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `percakapan-kemlu-${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        helpBtn.addEventListener('click', () => openModal(helpModal));
+        closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+
+        chatBox.addEventListener('click', async (e) => {
+            const button = e.target.closest('.chat-action-btn');
+            if (!button) return;
+            const action = button.dataset.action;
+            const messageId = button.closest('.chat-actions-container').dataset.actionFor;
+            const messageElement = document.getElementById(messageId);
+            if (!messageElement) return;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = messageElement.dataset.text;
+            const cleanText = tempDiv.innerText || tempDiv.textContent;
+            const currentLang = localStorage.getItem('chatLang') || 'id';
+
+            if (action === 'copy') {
+                try {
+                    await navigator.clipboard.writeText(cleanText);
+                    button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>';
+                    setTimeout(() => { button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>'; }, 1500);
+                } catch (err) { console.error('Gagal menyalin:', err); }
+            } else if (action === 'speak') {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    utterance.lang = currentLang === 'id' ? 'id-ID' : 'en-US';
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utterance);
+                } else { alert(translations[currentLang].speech_unsupported); }
+            } else if (action === 'like' || action === 'dislike') {
+                const actionContainer = button.closest('.chat-actions-container');
+                const likeBtn = actionContainer.querySelector('[data-action="like"]');
+                const dislikeBtn = actionContainer.querySelector('[data-action="dislike"]');
+                if (likeBtn.disabled) { showToast(translations[currentLang].toast_feedback_already_submitted); return; }
+                likeBtn.disabled = true; dislikeBtn.disabled = true;
+                button.classList.add(action === 'like' ? 'liked' : 'disliked');
+                showToast(translations[currentLang].toast_feedback_thanks);
+                try {
+                    await fetch('/log_reaction', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reaction: action, message: cleanText }), });
+                } catch (err) { console.error('Gagal log reaksi:', err); likeBtn.disabled = false; dislikeBtn.disabled = false; button.classList.remove(action === 'like' ? 'liked' : 'disliked'); showToast(translations[currentLang].toast_feedback_fail); }
+            }
+        });
+        
+        const startSessionTimer = () => { clearTimeout(sessionTimeoutTimer); sessionTimeoutTimer = setTimeout(() => { if(!chatWidget.classList.contains('hidden')) {openModal(sessionTimeoutModal);} }, 5 * 60 * 1000); };
+        const resetSessionTimer = () => startSessionTimer();
+        restartChatBtn.addEventListener('click', () => { closeModal(sessionTimeoutModal); resetChat(); startSessionTimer(); });
+        document.addEventListener('click', resetSessionTimer);
+        document.addEventListener('keypress', resetSessionTimer);
+
+        const updateLanguageUI = (lang) => {
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-translate-key]').forEach(el => {
+                const key = el.dataset.translateKey;
+                if (translations[lang] && translations[lang][key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = translations[lang][key];
+                    else if (el.title) el.title = translations[lang][key];
+                    else el.innerHTML = translations[lang][key];
+                }
+            });
+            if (lang === 'id') { langIdBtn.classList.add('active'); langEnBtn.classList.remove('active'); } 
+            else { langEnBtn.classList.add('active'); langIdBtn.classList.remove('active'); }
+        };
+        
+        const fetchAutocompleteTerms = async () => {
+             try {
+                const response = await fetch('/autocomplete');
+                autocompleteTerms = await response.json();
+            } catch (error) {
+                console.error('Gagal memuat autocomplete terms:', error);
+                autocompleteTerms = [];
+            }
+        };
+        
+        const setLanguage = async (lang) => {
+            localStorage.setItem('chatLang', lang);
+            try {
+                await fetch('/language', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lang }), });
+                updateLanguageUI(lang);
+                await fetchAutocompleteTerms();
+                chatBox.innerHTML = '';
+                clearFollowUpSuggestions();
+                showWelcomeMessage(lang);
+            } catch (error) { console.error('Gagal ganti bahasa:', error); }
+        };
+        langIdBtn.addEventListener('click', () => setLanguage('id'));
+        langEnBtn.addEventListener('click', () => setLanguage('en'));
+        
+        userInput.addEventListener('input', () => {
+            const value = userInput.value.toLowerCase();
+            autocompleteList.innerHTML = '';
+            if (value.length > 0) {
+                const filteredTerms = autocompleteTerms.filter(term => term.toLowerCase().includes(value)).slice(0, 5);
+                if(filteredTerms.length > 0) {
+                    filteredTerms.forEach(term => {
+                        const item = document.createElement('div');
+                        item.className = 'autocomplete-item';
+                        item.textContent = term;
+                        item.addEventListener('click', () => {
+                            userInput.value = term;
+                            autocompleteList.innerHTML = '';
+                            autocompleteList.classList.add('hidden');
+                        });
+                        autocompleteList.appendChild(item);
+                    });
+                    autocompleteList.classList.remove('hidden');
+                } else {
+                    autocompleteList.classList.add('hidden');
+                }
+            } else {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== userInput) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+        const initialLang = localStorage.getItem('chatLang') || 'id';
+        setLanguage(initialLang);
+        startSessionTimer();
+    });
+    </script>
+</body>
+</html>
